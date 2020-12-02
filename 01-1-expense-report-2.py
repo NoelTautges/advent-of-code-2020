@@ -9,7 +9,7 @@ def main():
             complement = 2020 - expense
             
             if complement in expenses:
-                print(f"{expense} * {complement} = {expense * complement}")
+                print(f"{complement} * {expense} = {complement * expense}")
                 break
 
             expenses.add(expense)
