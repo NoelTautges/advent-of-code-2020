@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
 
 def main():
-    group_questions = set()
-    count_sum = 0
+    anyone_group = set()
+    anyone_sum = 0
+    everyone_group = set()
+    everyone_sum = 0
+    first_person = True
 
     with open("06.txt") as questions_file:
         for line in questions_file:
-            group_questions.update(line.strip())
+            line = line.strip()
 
-            if line == "\n":
-                count_sum += len(group_questions)
-                group_questions.clear()
+            if line == "":
+                anyone_sum += len(anyone_group)
+                anyone_group.clear()
+                everyone_sum += len(everyone_group)
+                everyone_group.clear()
+                first_person = True
+
+                continue
+
+            anyone_group.update(line)
+            everyone_group = set(line) if first_person else {q for q in everyone_group if q in line}
+            first_person = False
         
-    print(f"Question count sum: {count_sum}")
+    print(f"Anyone sum: {anyone_sum}")
+    print(f"Everyone sum: {everyone_sum}")
 
 if __name__ == "__main__":
     main()
