@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from collections import defaultdict
+from functools import reduce
 
 bags = {}
 
@@ -59,7 +60,9 @@ def main():
     bag_contents = {bag: get_bag_contents(bag, 1) for bag in bags}
 
     shiny_gold_containers = len([bag for bag, contents in bag_contents.items() if bag != "shiny gold" and "shiny gold" in contents])
-    print(f"{shiny_gold_containers} shiny gold bag containers")
+    print(f"{shiny_gold_containers} bags holding a shiny gold one")
+    shiny_gold_contained = reduce(lambda one, two: one + two, bag_contents["shiny gold"].values()) - 1
+    print(f"{shiny_gold_contained} bags in a shiny gold one")
 
 if __name__ == "__main__":
     main()
