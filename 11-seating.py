@@ -1,29 +1,52 @@
 #!/usr/bin/env python3
 
-deltas = [(dx, dy) for dx in range(-1, 2) for dy in range(-1, 2) if [dx, dy] != [0, 0]]
+from functools import reduce
+
+deltas = [(-1, 1), (0, 1), (1, 1), (1, 0)]
 
 class SeatLayout:
-    def __init__(self):
-        with open("11.txt") as seats_file:
-            string_layout = [line.strip() for line in seats_file.readlines()]
+    def __init__(self, unlimited=False):
+        with open("11.txt") as layout_file:
+            string_layout = [line.strip() for line in layout_file.readlines()]
         
         self.width = len(string_layout[0])
         self.height = len(string_layout)
-        self.seats = [(x, y) for x in range(self.width) for y in range(self.height) if string_layout[y][x] == "L"]
-        self.layout = list([False] * self.width for y in range(self.height))
+        self.seats = [
+            (x, y)
+            for x in range(self.width)
+            for y in range(self.height)
+            if string_layout[y][x] == "L"
+        ]
+        self.neighbors = [[[] for x in range(self.width)] for y in range(self.height)]
+        self.layout = [[False] * self.width for y in range(self.height)]
+        self.max_neighbors = 4 if unlimited else 3
+
+        for x, y in self.seats:
+            for dx, dy in deltas:
+                cur_x = x + dx
+                cur_y = y + dy
+
+                while cur_x in range(self.width) \
+                    and cur_y in range(self.height):
+                    if string_layout[cur_y][cur_x] == "L":
+                        self.neighbors[y][x].append((cur_x, cur_y))
+                        self.neighbors[cur_y][cur_x].append((x, y))
+                        break
+
+                    if not unlimited:
+                        break
+
+                    cur_x += dx
+                    cur_y += dy
     
     def get_neighbors(self, x, y):
         neighbors = 0
 
-        for dx, dy in deltas:
-            if x + dx not in range(self.width) \
-                or y + dy not in range(self.height):
-                continue
-            
-            if self.layout[y + dy][x + dx]:
+        for nx, ny in self.neighbors[y][x]:
+            if self.layout[ny][nx]:
                 neighbors += 1
             
-            if neighbors == 4:
+            if neighbors > self.max_neighbors:
                 break
         
         return neighbors
@@ -36,22 +59,28 @@ class SeatLayout:
             neighbors = self.get_neighbors(x, y)
 
             if (not state and neighbors == 0) \
-                or (state and neighbors > 3):
+                or (state and neighbors > self.max_neighbors):
                 changes.append((x, y))
         
         for x, y in changes:
             self.layout[y][x] = not self.layout[y][x]
         
         return len(changes)
+    
+    def get_occupied(self):
+        return reduce(lambda total, row: total + row.count(True), self.layout, 0)
 
 def main():
-    layout = SeatLayout()
-
-    while layout.update():
+    limited_layout = SeatLayout()
+    while limited_layout.update():
         continue
+    print(limited_layout.get_occupied(), "seats occupied with limited sight")
 
-    occupied = sum(1 for _ in filter(lambda coords: layout.layout[coords[1]][coords[0]], layout.seats))
-    print(occupied, "seats occupied")
+    unlimited_layout = SeatLayout(unlimited=True)
+    while unlimited_layout.update():
+        continue
+    print(unlimited_layout.get_occupied(), "seats occupied with unlimited sight")
+
 
 if __name__ == "__main__":
     main()
